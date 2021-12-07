@@ -106,7 +106,7 @@ def check_algorithm(model_index_path: str = 'model-index.yml',
                     dry_run: bool = False,
                     debug: bool = False) -> int:
 
-    validate_pass = 0
+    retv = 0
     try:
         collections = load_model_zoo(model_index_path)
 
@@ -119,11 +119,11 @@ def check_algorithm(model_index_path: str = 'model-index.yml',
 
             if not abstract:
                 print(f'Abstract is empty,Please check {readme_path}')
-                validate_pass = 1
+                retv = 1
 
             if not image:
                 print(f'Image is empty,Please check {readme_path}')
-                validate_pass = 1
+                retv = 1
 
             if debug:
                 pprint.pprint({
@@ -135,12 +135,12 @@ def check_algorithm(model_index_path: str = 'model-index.yml',
     except (FileNotFoundError, ValueError) as e:
         if debug:
             print(e.message)
-        validate_pass = 1
+        retv = 1
 
     if dry_run:
         return 0
 
-    return validate_pass
+    return retv
 
 
 def main():
