@@ -118,13 +118,11 @@ def check_algorithm(model_index_path: str = 'model-index.yml',
             abstract, image = extract_readme(readme_path)
 
             if not abstract:
-                print(f'Abstract is empty, algorithm name: {display_name}, \
-                        {readme_path}')
+                print(f'Abstract is empty,Please check {readme_path}')
                 validate_pass = 1
 
             if not image:
-                print(f'Image is empty, algorithm name: {display_name}, \
-                        {readme_path}')
+                print(f'Image is empty,Please check {readme_path}')
                 validate_pass = 1
 
             if debug:
@@ -156,7 +154,7 @@ def main():
         '--debug', action='store_true', help='Print debug info')
     args = parser.parse_args()
 
-    return check_algorithm(args.debug, args.model_index, args.dry_run)
+    return check_algorithm(args.model_index, args.dry_run, args.debug)
 
 
 if __name__ == '__main__':
