@@ -20,4 +20,8 @@ A template to show how to implement a pre-commit hook
 
 ### check-algo-readme
 
-Check whether the abstract and icon exist in the algorithm readme
+Check whether the abstract and icon exist in the algorithm readme.
+
+* `--debug` - print details of abstract and icon in dict format.
+* `--dry-run` - just dry run, igonre failed use case.
+* `--model-index ${MODEL_INDEX}` - custom model-index file path.
