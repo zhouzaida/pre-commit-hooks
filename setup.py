@@ -18,5 +18,5 @@ setup(
     author_email='openmmlab@gmail.com',
     packages=find_packages(),
     python_requires='>=3.6',
-    scripts=['mmprecommit/say_hello.py', 'mmprecommit/check_readme.py'],
+    scripts=['mmprecommit/say_hello.py', 'mmprecommit/check_algo_readme.py'],
 )
