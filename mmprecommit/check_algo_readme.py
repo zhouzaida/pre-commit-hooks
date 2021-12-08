@@ -18,14 +18,14 @@ src_line_pattern = re.compile(src_matcher)
 src_link_pattern = re.compile(r"\".*?\"")
 
 
-def extract_readme(readmePath: str) -> Tuple[str, str]:
+def extract_readme(readme_path: str) -> Tuple[str, str]:
     abstract = ''
     image = ''
 
     abstract_start_search = False
     image_start_search = False
-    if osp.exists(readmePath):
-        with open(readmePath, encoding='utf-8') as file:
+    if osp.exists(readme_path):
+        with open(readme_path, encoding='utf-8') as file:
             line = file.readline()
             while line:
                 # extract abstract
@@ -45,6 +45,12 @@ def extract_readme(readmePath: str) -> Tuple[str, str]:
                 if not image_start_search:
                     image_start_search = icon_start_pattern.match(line)
                 line = file.readline()
+    
+    if not abstract:
+        print(f'Abstract is empty,Please check {readme_path}')
+
+    if not image:
+        print(f'Image is empty,Please check {readme_path}')
 
     return abstract, image
 
@@ -59,7 +65,7 @@ def handle_collection_name(name: str) -> str:
     return name
 
 
-def full_filepath(path: str, cur_filepath: str = None):
+def full_filepath(path: str, cur_filepath: str = None) -> str:
     if cur_filepath is not None:
         dirname = osp.dirname(cur_filepath)
         if dirname:
@@ -71,7 +77,8 @@ def full_filepath(path: str, cur_filepath: str = None):
 def load_any_file(path: str):
 
     if not osp.exists(path):
-        raise FileNotFoundError(f"File '{path}' does not exist.")
+        print(f'File "{path}" does not exist.')
+        return None
 
     with open(path, 'r') as f:
         raw = yaml.load(f, Loader=yaml.SafeLoader)
@@ -79,66 +86,51 @@ def load_any_file(path: str):
     return raw
 
 
-def load_model_zoo(model_index_path: str = 'model-index.yml'):
-    """load meta file."""
+def check_algorithm(model_index_path: str = 'model-index.yml', debug: bool = False) -> int:
 
+    retv = 0
+
+    # load collections
     model_index_data = load_any_file(model_index_path)
 
     # make sure the input is a dict
-    if not isinstance(model_index_data, dict):
-        raise ValueError(
-            f"Expected the file '{model_index_path}' to contain a dict, \
+    if model_index_data is None or not isinstance(model_index_data, dict):
+        print(f"Expected the file '{model_index_path}' to contain a dict, \
                 but it doesn't.")
-
-    imp = model_index_data['Import']
-
-    collections = []
-    for import_file in imp:
-        import_file = full_filepath(import_file, model_index_path)
-        meta_file_data = load_any_file(import_file)
-        col = meta_file_data['Collections']
-        collections.extend(col)
-
-    return collections
-
-
-def check_algorithm(model_index_path: str = 'model-index.yml',
-                    dry_run: bool = False,
-                    debug: bool = False) -> int:
-
-    retv = 0
-    try:
-        collections = load_model_zoo(model_index_path)
-
-        for collection in collections:
-            name = collection['Name']
-            display_name = handle_collection_name(name)
-
-            readme_path = full_filepath(collection['README'], model_index_path)
-            abstract, image = extract_readme(readme_path)
-
-            if not abstract:
-                print(f'Abstract is empty,Please check {readme_path}')
-                retv = 1
-
-            if not image:
-                print(f'Image is empty,Please check {readme_path}')
-                retv = 1
-
-            if debug:
-                pprint.pprint({
-                    'name': display_name,
-                    'readmePath': readme_path,
-                    'introduction': abstract,
-                    'image': image,
-                })
-    except (FileNotFoundError, ValueError) as e:
-        if debug:
-            print(e.message)
+        collections = []
         retv = 1
+    else:
+        import_files = model_index_data.get('Import')
 
-    if dry_run:
-        return 0
+        collections = []
+        for import_file in import_files:
+            import_file = full_filepath(import_file, model_index_path)
+            meta_file_data = load_any_file(import_file)
+            if meta_file_data:
+                col = meta_file_data.get('Collections')
+                collections.extend(col)
+            
+            # set return code
+            if meta_file_data is None:
+                retv = 1
+
+    for collection in collections:
+        name = collection.get('Name')
+        display_name = handle_collection_name(name)
+
+        readme_path = full_filepath(collection.get('README'), model_index_path)
+        abstract, image = extract_readme(readme_path)
+
+        if not abstract or not image:
+            retv = 1
+
+        if debug:
+            pprint.pprint({
+                'name': display_name,
+                'readmePath': readme_path,
+                'introduction': abstract,
+                'image': image,
+            })
 
     return retv
 
@@ -154,7 +146,13 @@ def main():
         '--debug', action='store_true', help='Print debug info')
     args = parser.parse_args()
 
-    return check_algorithm(args.model_index, args.dry_run, args.debug)
+    retv = check_algorithm(args.model_index, args.debug)
+
+    if args.dry_run:
+        return 0
+
+    return retv
+    
 
 
 if __name__ == '__main__':
