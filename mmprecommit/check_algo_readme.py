@@ -45,7 +45,7 @@ def extract_readme(readme_path: str) -> Tuple[str, str]:
                 if not image_start_search:
                     image_start_search = icon_start_pattern.match(line)
                 line = file.readline()
-    
+
     if not abstract:
         print(f'Abstract is empty,Please check {readme_path}')
 
@@ -86,7 +86,8 @@ def load_any_file(path: str):
     return raw
 
 
-def check_algorithm(model_index_path: str = 'model-index.yml', debug: bool = False) -> int:
+def check_algorithm(model_index_path: str = 'model-index.yml',
+                    debug: bool = False) -> int:
 
     retv = 0
 
@@ -109,7 +110,7 @@ def check_algorithm(model_index_path: str = 'model-index.yml', debug: bool = Fal
             if meta_file_data:
                 col = meta_file_data.get('Collections')
                 collections.extend(col)
-            
+
             # set return code
             if meta_file_data is None:
                 retv = 1
@@ -152,7 +153,6 @@ def main():
         return 0
 
     return retv
-    
 
 
 if __name__ == '__main__':
