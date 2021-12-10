@@ -17,3 +17,11 @@ Add this to your `.pre-commit-config.yaml`
 ### say-hello
 
 A template to show how to implement a pre-commit hook
+
+### check-copyright
+
+ Check whether the code contains copyright
+
+ * `src` - source files to add header.
+ * `--exclude_dirs` - exclude folder.
+ * `--include_suffixes` - header will be added to files with suffix.

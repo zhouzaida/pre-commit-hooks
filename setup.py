@@ -2,7 +2,7 @@ from setuptools import find_packages, setup  # type: ignore
 
 
 def readme():
-    with open('README.md', encoding='utf-8') as f:
+    with open('./README.md', encoding='utf-8') as f:
         content = f.read()
     return content
 
@@ -18,5 +18,5 @@ setup(
     author_email='openmmlab@gmail.com',
     packages=find_packages(),
     python_requires='>=3.6',
-    scripts=['mmprecommit/say_hello.py'],
+    scripts=['mmprecommit/say_hello.py', 'mmprecommit/check_copyright.py'],
 )
