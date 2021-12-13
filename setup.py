@@ -19,5 +19,8 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
     install_requires=['PyYAML'],
-    scripts=['pre_commit_hooks/say_hello.py', 'pre_commit_hooks/check_algo_readme.py'],
+    scripts=[
+        'pre_commit_hooks/say_hello.py',
+        'pre_commit_hooks/check_algo_readme.py',
+    ],
 )
