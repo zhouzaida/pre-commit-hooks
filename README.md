@@ -1,4 +1,4 @@
-# MMPrecommit
+# pre-commit-hooks
 
 Some pre-commit hooks for OpenMMLab projects.
 
@@ -7,10 +7,10 @@ Some pre-commit hooks for OpenMMLab projects.
 Add this to your `.pre-commit-config.yaml`
 
 ```yaml
--   repo: https://github.com/zhouzaida/mmprecommit
+-   repo: https://github.com/zhouzaida/pre-commit-hooks
     rev: v0.1.0  # Use the ref you want to point at
     hooks:
-    -   id: say-hello
+    -   id: check-algo-readme
 ```
 ## Hooks available
 
@@ -18,10 +18,18 @@ Add this to your `.pre-commit-config.yaml`
 
 A template to show how to implement a pre-commit hook
 
+### check-algo-readme
+
+Check whether the abstract and icon exist in the algorithm readme.
+
+* `--debug` - print details of abstract and icon in dict format.
+* `--dry-run` - just dry run, igonre failed use case.
+* `--model-index ${MODEL_INDEX}` - custom model-index file path.
+
 ### check-copyright
 
- Check whether the code contains copyright
+Check whether the code contains copyright
 
- * `src` - source files to add header.
- * `--exclude_dirs` - exclude folder.
- * `--include_suffixes` - header will be added to files with suffix.
+ * `include` - directory to add copyright.
+ * `--exclude` - exclude directory.
+ * `--suffix` - copyright will be added to files with suffix.
