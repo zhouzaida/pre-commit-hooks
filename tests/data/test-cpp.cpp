@@ -228,7 +228,3 @@ std::vector<std::vector<int> > nms_match_cpu(Tensor dets, float iou_threshold) {
 std::vector<std::vector<int> > nms_match_impl(Tensor dets, float iou_threshold);
 REGISTER_DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
 DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
-DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
-DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
-DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
-DEVICE_IMPL(nms_match_impl, CPU, nms_match_cpu);
