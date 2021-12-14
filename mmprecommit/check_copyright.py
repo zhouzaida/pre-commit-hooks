@@ -46,17 +46,17 @@ def check_args(args) -> int:
     # check the correctness and format args
     for i, dir in enumerate(args.include):
         if not osp.exists(dir):
-            raise FileNotFoundError(f"Include {dir} can not be found")
+            raise FileNotFoundError(f'Include {dir} can not be found')
         else:
             args.include[i] = osp.abspath(dir)
     for i, dir in enumerate(args.exclude):
         if not osp.exists(dir):
-            raise FileNotFoundError(f"Exclude {dir} can not be found")
+            raise FileNotFoundError(f'Exclude {dir} can not be found')
         else:
             args.exclude[i] = osp.abspath(dir)
     for suffix in args.suffix:
         if suffix not in suffixes:
-            raise FileNotFoundError(f"Suffix {suffix} can not be found")
+            raise FileNotFoundError(f'Suffix {suffix} can not be found')
 
 
 def get_filepaths(args) -> List[str]:
@@ -84,10 +84,10 @@ def get_filepaths(args) -> List[str]:
 
 def check_copyright(filepaths: List[str]) -> int:
     """Add copyright for those files which lack copyright.
-    
+
     Args:
        filepaths (list[str]): File paths to be checked.
-    
+
     returns:
         int: Returns 0 if no file is missing copyright, otherwise returns 1.
     """

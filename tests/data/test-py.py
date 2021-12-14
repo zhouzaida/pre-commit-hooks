@@ -1,9 +1,10 @@
 import os
 
 import numpy as np
+import numpy as np
 import torch
-
 from mmcv.utils import deprecated_api_warning
+
 from ..utils import ext_loader
 
 ext_module = ext_loader.load_ext(
@@ -415,13 +416,8 @@ def nms_rotated(dets, scores, iou_threshold, labels=None):
     dets = torch.cat((dets[keep_inds], scores[keep_inds].reshape(-1, 1)),
                      dim=1)
     return dets, keep_inds
-import os
 
-import numpy as np
-import torch
 
-from mmcv.utils import deprecated_api_warning
-from ..utils import ext_loader
 
 ext_module = ext_loader.load_ext(
     '_ext', ['nms', 'softnms', 'nms_match', 'nms_rotated'])
