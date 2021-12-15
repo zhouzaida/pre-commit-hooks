@@ -33,40 +33,42 @@ def parse_args():
     return args
 
 
-def check_args(args) -> int:
+def check_args(include: List[str], exclude: List[str], suffix: List[str]):
     """Check the correctness of args and format them."""
 
     suffixes = ['.py', '.h', '.cpp', '.cu', '.cuh', '.hpp']
 
     # remove possible duplication
-    args.include = list(set(args.include))
-    args.exclude = list(set(args.exclude))
-    args.suffix = list(set(args.suffix))
+    include = list(set(include))
+    exclude = list(set(exclude))
+    suffix = list(set(suffix))
 
     # check the correctness and format args
-    for i, dir in enumerate(args.include):
+    for i, dir in enumerate(include):
         if not osp.exists(dir):
             raise FileNotFoundError(f'Include {dir} can not be found')
         else:
-            args.include[i] = osp.abspath(dir)
-    for i, dir in enumerate(args.exclude):
+            include[i] = osp.abspath(dir)
+    for i, dir in enumerate(exclude):
         if not osp.exists(dir):
             raise FileNotFoundError(f'Exclude {dir} can not be found')
         else:
-            args.exclude[i] = osp.abspath(dir)
-    for suffix in args.suffix:
-        if suffix not in suffixes:
-            raise FileNotFoundError(f'Suffix {suffix} can not be found')
+            exclude[i] = osp.abspath(dir)
+    for suf in suffix:
+        if suf not in suffixes:
+            raise FileNotFoundError(f'Suffix {suf} can not be found')
+    return include, exclude, suffix
 
 
-def get_filepaths(args) -> List[str]:
+def get_filepaths(include: List[str], exclude: List[str],
+                  suffix: List[str]) -> List[str]:
     """Get all file paths that match the args."""
 
     filepaths = []
-    for dir in args.include:
+    for dir in include:
         for root, dirs, files in os.walk(dir):
             is_exclude = False
-            for dir in args.exclude:
+            for dir in exclude:
                 if root.startswith(dir):
                     is_exclude = True
                     break
@@ -74,44 +76,49 @@ def get_filepaths(args) -> List[str]:
                 continue
             else:
                 for file in files:
-                    for suffix in args.suffix:
-                        if file.endswith(suffix):
+                    for suf in suffix:
+                        if file.endswith(suf):
                             filepath = osp.join(root, file)
                             filepaths.append(filepath)
                             break
     return filepaths
 
 
-def check_copyright(filepaths: List[str]) -> int:
+def check_copyright(include: List[str], exclude: List[str],
+                    suffix: List[str]) -> int:
     """Add copyright for those files which lack copyright.
 
     Args:
-       filepaths (list[str]): File paths to be checked.
+        include: Directory to add copyright.
+        exclude: Exclude directory.
+        suffix: Copyright will be added to files with suffix.
 
     returns:
-        int: Returns 0 if no file is missing copyright, otherwise returns 1.
+        Returns 0 if no file is missing copyright, otherwise returns 1.
     """
     rev = 0
-    for filepath in filepaths:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        if not has_copyright(lines):
-            with open(filepath, 'w', encoding='utf-8') as f:
-                prefix = '# ' if osp.splitext(filepath)[1] == '.py' else '// '
-                f.writelines([prefix + HEADER] + lines)
-                rev = 1
+    try:
+        include, exclude, suffix = check_args(include, exclude, suffix)
+    except FileNotFoundError as e:
+        print(repr(e))
+        return 1
+    else:
+        filepaths = get_filepaths(include, exclude, suffix)
+        for filepath in filepaths:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            if not has_copyright(lines):
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    prefix = '# ' if osp.splitext(
+                        filepath)[1] == '.py' else '// '
+                    f.writelines([prefix + HEADER] + lines)
+                    rev = 1
     return rev
 
 
 def main():
     args = parse_args()
-    try:
-        check_args(args)
-    except FileNotFoundError as e:
-        print(repr(e))
-        return 1
-    filepaths = get_filepaths(args)
-    return check_copyright(filepaths)
+    return check_copyright(args.include, args.exclude, args.suffix)
 
 
 if __name__ == '__main__':

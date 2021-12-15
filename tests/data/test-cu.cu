@@ -1,52 +1,33 @@
-#include "nms_cuda_kernel.cuh"
-#include "pytorch_cuda_helper.hpp"
+#include "test-cuh.cuh"
 
-Tensor NMSCUDAKernelLauncher(Tensor boxes, Tensor scores, float iou_threshold,
-                             int offset) {
-  at::cuda::CUDAGuard device_guard(boxes.device());
+int main(void) {
+  int N = 1 << 20;
+  float *x, *y;
 
-  if (boxes.numel() == 0) {
-    return at::empty({0}, boxes.options().dtype(at::kLong));
-  }
-  auto order_t = std::get<1>(scores.sort(0, /*descending=*/true));
-  auto boxes_sorted = boxes.index_select(0, order_t);
+  // Allocate Unified Memory – accessible from CPU or GPU
+  cudaMallocManaged(&x, N * sizeof(float));
+  cudaMallocManaged(&y, N * sizeof(float));
 
-  int boxes_num = boxes.size(0);
-  const int col_blocks = DIVUP(boxes_num, threadsPerBlock);
-  Tensor mask =
-      at::empty({boxes_num, col_blocks}, boxes.options().dtype(at::kLong));
-  dim3 blocks(col_blocks, col_blocks);
-  dim3 threads(threadsPerBlock);
-  cudaStream_t stream = at::cuda::getCurrentCUDAStream();
-  nms_cuda<<<blocks, threads, 0, stream>>>(
-      boxes_num, iou_threshold, offset, boxes_sorted.data_ptr<float>(),
-      (unsigned long long*)mask.data_ptr<int64_t>());
-
-  at::Tensor mask_cpu = mask.to(at::kCPU);
-  unsigned long long* mask_host =
-      (unsigned long long*)mask_cpu.data_ptr<int64_t>();
-
-  std::vector<unsigned long long> remv(col_blocks);
-  memset(&remv[0], 0, sizeof(unsigned long long) * col_blocks);
-
-  at::Tensor keep_t =
-      at::zeros({boxes_num}, boxes.options().dtype(at::kBool).device(at::kCPU));
-  bool* keep = keep_t.data_ptr<bool>();
-
-  for (int i = 0; i < boxes_num; i++) {
-    int nblock = i / threadsPerBlock;
-    int inblock = i % threadsPerBlock;
-
-    if (!(remv[nblock] & (1ULL << inblock))) {
-      keep[i] = true;
-      // set every overlap box with bit 1 in remv
-      unsigned long long* p = mask_host + i * col_blocks;
-      for (int j = nblock; j < col_blocks; j++) {
-        remv[j] |= p[j];
-      }
-    }
+  // initialize x and y arrays on the host
+  for (int i = 0; i < N; i++) {
+    x[i] = 1.0f;
+    y[i] = 2.0f;
   }
 
-  AT_CUDA_CHECK(cudaGetLastError());
-  return order_t.masked_select(keep_t.to(at::kCUDA));
+  // Run kernel on 1M elements on the GPU
+  add<<<1, 1>>>(N, x, y);
+
+  // Wait for GPU to finish before accessing on host
+  cudaDeviceSynchronize();
+
+  // Check for errors (all values should be 3.0f)
+  float maxError = 0.0f;
+  for (int i = 0; i < N; i++) maxError = fmax(maxError, fabs(y[i] - 3.0f));
+  std::cout << "Max error: " << maxError << std::endl;
+
+  // Free memory
+  cudaFree(x);
+  cudaFree(y);
+
+  return 0;
 }

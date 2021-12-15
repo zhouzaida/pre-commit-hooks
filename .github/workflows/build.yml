@@ -7,7 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,8 +23,6 @@ jobs:
           sudo apt-get install -y ruby2.7
           pip install pre-commit
           pre-commit install
-      - name: check-copyright
-        run: python mmprecommit/check_copyright.py ./tests/data --exclude ./tests/data/exclude --suffix .py .cpp .h .cu .cuh .hpp
       - name: unit-test
         run: |
           pip install pytest

@@ -24,3 +24,5 @@
   description: check whether the code contains copyright
   language: python
   entry: check_copyright.py
+  require_serial: true
+  pass_filenames: false

@@ -22,6 +22,6 @@ setup(
     scripts=[
         'pre_commit_hooks/say_hello.py',
         'pre_commit_hooks/check_algo_readme.py',
-        'mmprecommit/check_copyright.py'
+        'pre_commit_hooks/check_copyright.py'
     ],
 )
