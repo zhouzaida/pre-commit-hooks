@@ -30,6 +30,6 @@ Check whether the abstract and icon exist in the algorithm readme.
 
 Check whether the code contains copyright
 
- * `include` - directory to add copyright.
- * `--exclude` - exclude directory.
- * `--suffix` - copyright will be added to files with suffix.
+ * `includes` - directory to add copyright.
+ * `--excludes` - exclude directory.
+ * `--suffixes` - copyright will be added to files with suffix.

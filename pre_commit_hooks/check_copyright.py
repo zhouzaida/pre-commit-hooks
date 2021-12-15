@@ -20,55 +20,59 @@ def has_copyright(lines: List[str]) -> bool:
 def parse_args():
     parser = argparse.ArgumentParser(description='Add copyright to files')
     parser.add_argument(
-        'include', type=str, nargs='+', help='directory to add copyright')
+        'includes', type=str, nargs='+', help='directory to add copyright')
     parser.add_argument(
-        '--exclude', nargs='*', type=str, default=[], help='exclude directory')
+        '--excludes',
+        nargs='*',
+        type=str,
+        default=[],
+        help='excludes directory')
     parser.add_argument(
-        '--suffix',
+        '--suffixes',
         nargs='*',
         type=str,
         default=['.py'],
-        help='copyright will be added to files with suffix')
+        help='copyright will be added to files with suffixes')
     args = parser.parse_args()
     return args
 
 
-def check_args(include: List[str], exclude: List[str], suffix: List[str]):
+def check_args(includes: List[str], excludes: List[str], suffixes: List[str]):
     """Check the correctness of args and format them."""
 
-    suffixes = ['.py', '.h', '.cpp', '.cu', '.cuh', '.hpp']
+    valid_suffixes = set(['.py', '.h', '.cpp', '.cu', '.cuh', '.hpp'])
 
     # remove possible duplication
-    include = list(set(include))
-    exclude = list(set(exclude))
-    suffix = list(set(suffix))
+    includes = list(set(includes))
+    excludes = list(set(excludes))
+    suffixes = list(set(suffixes))
 
     # check the correctness and format args
-    for i, dir in enumerate(include):
+    for i, dir in enumerate(includes):
         if not osp.exists(dir):
             raise FileNotFoundError(f'Include {dir} can not be found')
         else:
-            include[i] = osp.abspath(dir)
-    for i, dir in enumerate(exclude):
+            includes[i] = osp.abspath(dir)
+    for i, dir in enumerate(excludes):
         if not osp.exists(dir):
             raise FileNotFoundError(f'Exclude {dir} can not be found')
         else:
-            exclude[i] = osp.abspath(dir)
-    for suf in suffix:
-        if suf not in suffixes:
-            raise FileNotFoundError(f'Suffix {suf} can not be found')
-    return include, exclude, suffix
+            excludes[i] = osp.abspath(dir)
+    for suffix in suffixes:
+        if suffix not in valid_suffixes:
+            raise FileNotFoundError(f'Suffix {suffix} can not be found')
+    return includes, excludes, suffixes
 
 
-def get_filepaths(include: List[str], exclude: List[str],
-                  suffix: List[str]) -> List[str]:
+def get_filepaths(includes: List[str], excludes: List[str],
+                  suffixes: List[str]) -> List[str]:
     """Get all file paths that match the args."""
 
     filepaths = []
-    for dir in include:
+    for dir in includes:
         for root, dirs, files in os.walk(dir):
             is_exclude = False
-            for dir in exclude:
+            for dir in excludes:
                 if root.startswith(dir):
                     is_exclude = True
                     break
@@ -76,49 +80,52 @@ def get_filepaths(include: List[str], exclude: List[str],
                 continue
             else:
                 for file in files:
-                    for suf in suffix:
-                        if file.endswith(suf):
-                            filepath = osp.join(root, file)
-                            filepaths.append(filepath)
-                            break
+                    _, ext = osp.splitext(file)
+                    if ext in suffixes:
+                        filepath = osp.join(root, file)
+                        filepaths.append(filepath)
     return filepaths
 
 
-def check_copyright(include: List[str], exclude: List[str],
-                    suffix: List[str]) -> int:
+def check_copyright(includes: List[str], excludes: List[str],
+                    suffixes: List[str]) -> int:
     """Add copyright for those files which lack copyright.
 
     Args:
-        include: Directory to add copyright.
-        exclude: Exclude directory.
-        suffix: Copyright will be added to files with suffix.
+        includes: Directory to add copyright.
+        excludes: Exclude directory.
+        suffixes: Copyright will be added to files with suffixes.
 
     returns:
         Returns 0 if no file is missing copyright, otherwise returns 1.
     """
     rev = 0
+    fixed_filepaths = []
     try:
-        include, exclude, suffix = check_args(include, exclude, suffix)
+        includes, excludes, suffixes = check_args(includes, excludes, suffixes)
     except FileNotFoundError as e:
         print(repr(e))
         return 1
     else:
-        filepaths = get_filepaths(include, exclude, suffix)
+        filepaths = get_filepaths(includes, excludes, suffixes)
         for filepath in filepaths:
             with open(filepath, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             if not has_copyright(lines):
+                fixed_filepaths.append(filepath)
                 with open(filepath, 'w', encoding='utf-8') as f:
                     prefix = '# ' if osp.splitext(
                         filepath)[1] == '.py' else '// '
                     f.writelines([prefix + HEADER] + lines)
                     rev = 1
+    for filepath in fixed_filepaths:
+        print(f'Fixing {filepath}')
     return rev
 
 
 def main():
     args = parse_args()
-    return check_copyright(args.include, args.exclude, args.suffix)
+    return check_copyright(args.includes, args.excludes, args.suffixes)
 
 
 if __name__ == '__main__':
