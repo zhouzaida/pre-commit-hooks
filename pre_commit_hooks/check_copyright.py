@@ -60,7 +60,8 @@ def check_args(includes: List[str], excludes: List[str], suffixes: List[str]):
             excludes[i] = osp.abspath(dir)
     for suffix in suffixes:
         if suffix not in valid_suffixes:
-            raise FileNotFoundError(f'Suffix {suffix} can not be found')
+            raise FileNotFoundError(
+                f'Expected suffixes are {valid_suffixes}, but got {suffix}')
     return includes, excludes, suffixes
 
 
