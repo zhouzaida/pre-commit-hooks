@@ -70,11 +70,11 @@ def get_filepaths(includes: List[str], excludes: List[str],
     """Get all file paths that match the args."""
 
     filepaths = []
-    for dir in includes:
-        for root, dirs, files in os.walk(dir):
+    for include in includes:
+        for root, dirs, files in os.walk(include):
             is_exclude = False
-            for dir in excludes:
-                if root.startswith(dir):
+            for exclude in excludes:
+                if root.startswith(exclude):
                     is_exclude = True
                     break
             if is_exclude:
